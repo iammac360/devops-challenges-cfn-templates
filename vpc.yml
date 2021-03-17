@@ -68,16 +68,16 @@ Resources:
       EnableDnsSupport: true
       InstanceTenancy: default
       Tags: 
-        - Key: Name
-          Value: SargeVPC
+      - Key: Name
+        Value: SargeVPC
 
   # Create Internet Gateway
   SargeIG:
     Type: AWS::EC2::InternetGateway
     Properties:
-      Tags: 
-        - Key: Name
-          Value: SargeIG
+      Tags:
+      - Key: Name
+        Value: SargeIG
 
   # Attach Internet Gateway to VPC
   IGAttachmentToVPC:
@@ -94,8 +94,8 @@ Resources:
       CidrBlock: !Ref PublicSubnetACDIR
       MapPublicIpOnLaunch: true
       Tags: 
-        - Key: Name
-          Value: PublicSubnetA
+      - Key: Name
+        Value: SargePublicSubnetA
       VpcId: !Ref SargeVPC
 
   # Create Public Subnet B
@@ -106,10 +106,10 @@ Resources:
       CidrBlock: !Ref PublicSubnetBCDIR
       MapPublicIpOnLaunch: true
       Tags:
-        - Key: Name
-          Value: PublicSubnetB
-        - Key: Tier
-          Value: Public
+      - Key: Name
+        Value: SargePublicSubnetB
+      - Key: Tier
+        Value: Public
       VpcId: !Ref SargeVPC
 
   # Create Public Route Table
@@ -117,10 +117,10 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
-        - Key: Name
-          Value: PublicRouteTable
-        - Key: Tier
-          Value: Public
+      - Key: Name
+        Value: SargePublicRouteTable
+      - Key: Tier
+        Value: Public
       VpcId: !Ref SargeVPC
 
   # Add a Public Route to the Route Table
@@ -153,10 +153,10 @@ Resources:
       CidrBlock: !Ref PrivateSubnetACDIR
       MapPublicIpOnLaunch: false
       Tags: 
-        - Key: Name
-          Value: PrivateSubnetA
-        - Key: Tier
-          Value: App
+      - Key: Name
+        Value: SargePrivateSubnetA
+      - Key: Tier
+        Value: App
       VpcId: !Ref SargeVPC
 
   # Create Private Subnet B
@@ -167,10 +167,10 @@ Resources:
       CidrBlock: !Ref PrivateSubnetBCDIR
       MapPublicIpOnLaunch: false
       Tags: 
-        - Key: Name
-          Value: PrivateSubnetB
-        - Key: Tier
-          Value: App
+      - Key: Name
+        Value: SargePrivateSubnetB
+      - Key: Tier
+        Value: App
       VpcId: !Ref SargeVPC
 
   # Create Database Subnet A
@@ -181,10 +181,10 @@ Resources:
       CidrBlock: !Ref DatabaseSubnetACDIR
       MapPublicIpOnLaunch: false
       Tags: 
-        - Key: Name
-          Value: DatabaseSubnetA
-        - Key: Tier
-          Value: Database
+      - Key: Name
+        Value: SargeDatabaseSubnetA
+      - Key: Tier
+        Value: Database
       VpcId: !Ref SargeVPC
 
   # Create Database Subnet B
@@ -195,10 +195,10 @@ Resources:
       CidrBlock: !Ref DatabaseSubnetBCDIR
       MapPublicIpOnLaunch: false
       Tags: 
-        - Key: Name
-          Value: DatabaseSubnetB
-        - Key: Tier
-          Value: Database
+      - Key: Name
+        Value: SargeDatabaseSubnetB
+      - Key: Tier
+        Value: Database
       VpcId: !Ref SargeVPC
 
   # Create Elastic IP For NAT Gateway
@@ -207,8 +207,8 @@ Resources:
     Properties: 
       Domain: vpc
       Tags:
-        - Key: Name
-          Value: NAT EIP
+      - Key: Name
+        Value: SargeNatEIP
 
   
   # Create NAT Gateway
@@ -218,18 +218,18 @@ Resources:
       AllocationId: !GetAtt NatEIP.AllocationId
       SubnetId: !Ref PublicSubnetA
       Tags: 
-        - Key: Name
-          Value: Sarge NAT Gateway
+      - Key: Name
+        Value: SargeNATGateway
 
   # Create Private Route Table
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       Tags:
-        - Key: Name
-          Value: PrivateRouteTable
-        - Key: Tier
-          Value: Private
+      - Key: Name
+        Value: SargeDefaultRouteTable
+      - Key: Tier
+        Value: Private
       VpcId: !Ref SargeVPC
 
   # Add a Private Route to the Route Table
