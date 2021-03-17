@@ -43,4 +43,4 @@ Resources:
         - Key: Tier
           Beginner Challenge
 
-      VpcId: !ImportValue
+      VpcId: !ImportValue 

@@ -24,37 +24,37 @@ Metadata:
 
 Parameters:
   VpcCIDR:
-    Default: 12.0.0.0/16
+    Default: 33.0.0.0/16
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
 
   PublicSubnetACDIR:
-    Default: 12.0.0.0/24
+    Default: 33.0.0.0/24
     Description: Please enter the IP range (CIDR notation) for this Public Subnet A
     Type: String
 
   PublicSubnetBCDIR:
-    Default: 12.0.0.0/24
+    Default: 33.0.1.0/24
     Description: Please enter the IP range (CIDR notation) for this Public Subnet B
     Type: String
 
   PrivateSubnetACDIR:
-    Default: 12.0.1.0/24
+    Default: 33.0.10.0/24
     Description: Please enter the IP range (CIDR notation) for this Private Subnet A
     Type: String
 
   PrivateSubnetBCDIR:
-    Default: 12.0.2.0/24
+    Default: 33.0.11.0/24
     Description: Please enter the IP range (CIDR notation) for this Private Subnet B
     Type: String
 
   DatabaseSubnetACDIR:
-    Default: 12.0.120.0/24
+    Default: 33.0.100.0/24
     Description: Please enter the IP range (CIDR notation) for this Database Subnet A
     Type: String
 
   DatabaseSubnetBCDIR:
-    Default: 12.0.121.0/24
+    Default: 33.0.101.0/24
     Description: Please enter the IP range (CIDR notation) for this Database Subnet B
     Type: String
 
@@ -216,7 +216,7 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties: 
       AllocationId: !GetAtt NatEIP.AllocationId
-      SubnetId: String
+      SubnetId: !Ref PublicSubnetA
       Tags: 
         - Key: Name
           Value: Sarge NAT Gateway
@@ -275,4 +275,3 @@ Outputs:
     Export:
       Name:
         'Fn::Sub': '${AWS::StackName}-VpcID'
-
