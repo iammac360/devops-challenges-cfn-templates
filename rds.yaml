@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template creates RDS MySQL Instance
+
+Transform: [PyPlate]
+
+Parameters:
+  DBInstanceID:
+    Default: sargedbinstance
+    Description: My database instance
+    Type: String
+    MinLength: '1'
+    MaxLength: '63'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: >-
+      Must begin with a letter and must not end with a hyphen or contain two
+
+  DBInstanceClass:
+    Default: db.t2.micro
+    Description: DB instance class
+    Type: String
+    ConstraintDescription: Must select a valid DB instance type.
+
+  DBAllocatedStorage:
+    Default: '10'
+    Description: The size of the database (GiB)
+    Type: Number
+    MinValue: '5'
+    MaxValue: '1024'
+    ConstraintDescription: must be between 10 and 65536 GiB.
+
+  DBName:
+    Default: sarge
+    Description: Please enter the desired DB Name
+    Type: String
+
+  DBUsername:
+    Default: sarge
+    Description: Please enter the desired DB Username
+    Type: String
+
+  DBPassword:
+    Default: thi$IsaVerYStR0ngPA$sWord
+    Description: Please enter the desired DB Password
+    Type: String
+
+  DBPort:
+    Default: 3306
+    Description: Please enter the desired DB Port
+    Type: String
+
+  DBSubnetGroupIDs:
+    Description: Please select the Subnet ID
+    ConstraintDescription: "Must be a list of subnet IDs"
+    Type: CommaDelimitedList
+  
+  DBSubnetGroupName:
+    Default: SargeDBSubnetGroup
+    Description: Please enter a Subnet Group Name
+    Type: String
+
+  VPCId:
+    Description: Please enter the VPC ID
+    Type: AWS::EC2::VPC::Id
+
+  DBAppCIDRs:
+    Default: '33.0.10.0/24,33.0.11.0/24'
+    Description: Please enter the CIDR blocks(comma seperated)
+    Type: CommaDelimitedList 
+
+
+Resources:
+  SargeDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: Sarge default DB Subnet Group
+      DBSubnetGroupName: !Ref DBSubnetGroupName
+      SubnetIds: !Ref DBSubnetGroupIDs
+      Tags: 
+      - Key: Name
+        Value: SargeDBSubnetGroup
+
+  SargeDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group For Sarge RDS resources
+      GroupName: SargeDBSecurityGroup
+      VpcId: !Ref VPCId
+      SecurityGroupIngress: |
+        #!PyPlate
+        output = []
+        for cdir in params['DBAppCIDRs']:
+          output.append({
+              "IpProtocol": 'tcp',
+              "FromPort": params['DBPort'],
+              "ToPort": params['DBPort'],
+              "CidrIp": cidr
+          })
+      Tags:
+      - Key: Name
+        Value: SargeDBSecurityGroup
+      - Key: Tier
+        Value: Database
+      VpcId: !Ref VPCId
+
+  SargeDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceID
+      DBName: !Ref DBName
+      Port: !Ref DBPort
+      Engine: MySQL
+      EngineVersion: 8.0.16
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: !Ref DBAllocatedStorage
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      MultiAZ: true
+      DBSubnetGroupName: !Ref DBSubnetGroupName
+      VPCSecurityGroups:
+      - !Ref SargeDBSecurityGroup
+      Tags:
+      - Key: Name
+        Value: 'SargeDBInstance'

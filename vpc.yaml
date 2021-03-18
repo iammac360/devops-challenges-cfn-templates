@@ -269,9 +269,93 @@ Resources:
       SubnetId: !Ref DatabaseSubnetB
 
 Outputs:
-  SargeVPC:
+  VPCId:
     Description: The VPC ID for Apper Challenge
     Value: !Ref SargeVPC
     Export:
       Name:
         'Fn::Sub': '${AWS::StackName}-VpcID'
+
+  PublicSubnetA:
+    Description: The Public subnet A
+    Value: !Ref PublicSubnetA
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-PublicSubnetA'
+
+  PublicSubnetB:
+    Description: The Public subnet B
+    Value: !Ref PublicSubnetB
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-PublicSubnetB'
+
+  PrivateSubnetA:
+    Description: The Private subnet A
+    Value: !Ref PrivateSubnetA
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-PrivateSubnetA'
+
+  PrivateSubnetB:
+    Description: The Private subnet B
+    Value: !Ref PrivateSubnetB
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-PrivateSubnetB'
+
+  DatabaseSubnetA:
+    Description: The Database subnet A
+    Value: !Ref DatabaseSubnetA
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-DatabaseSubnetA'
+
+  DatabaseSubnetB:
+    Description: The Database subnet B
+    Value: !Ref DatabaseSubnetB
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-DatabaseSubnetB'
+
+  PublicSubnetACDIR:
+    Description: The Public Subnet CDIR A
+    Value: !Ref PublicSubnetACDIR
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-PublicSubnetACDIR'
+
+  PublicSubnetBCDIR:
+    Description: The Public Subnet CDIR B
+    Value: !Ref PublicSubnetBCDIR
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-PublicSubnetBCDIR'
+
+  PrivateSubnetACDIR:
+    Description: The Private Subnet CDIR A
+    Value: !Ref PrivateSubnetACDIR
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-PrivateSubnetACDIR'
+
+  PrivateSubnetBCDIR:
+    Description: The Private Subnet CDIR B
+    Value: !Ref PrivateSubnetBCDIR
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-PrivateSubnetBCDIR'
+
+  DatabaseSubnetACDIR:
+    Description: The Database Subnet CDIR A
+    Value: !Ref DatabaseSubnetACDIR
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-DatabaseSubnetACDIR'
+
+  DatabaseSubnetBCDIR:
+    Description: The Database Subnet CDIR B
+    Value: !Ref DatabaseSubnetBCDIR
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-DatabaseSubnetBCDIR'
