@@ -89,13 +89,13 @@ Resources:
       SecurityGroupIngress: |
         #!PyPlate
         output = []
-        for cdir in params['DBAppCIDRs']:
-          output.append({
-              "IpProtocol": 'tcp',
-              "FromPort": params['DBPort'],
-              "ToPort": params['DBPort'],
-              "CidrIp": cidr
-          })
+        for cidr in params['DBAppCIDRs']:
+            output.append({
+                "IpProtocol": 'tcp',
+                "FromPort": params['DBPort'],
+                "ToPort": params['DBPort'],
+                "CidrIp": cidr
+            })
       Tags:
       - Key: Name
         Value: SargeDBSecurityGroup
