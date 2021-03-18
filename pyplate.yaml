@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 
+Description: This template creates custom CF Macro for processing templates using Python
+
 Resources:
   TransformExecutionRole:
     Type: AWS::IAM::Role

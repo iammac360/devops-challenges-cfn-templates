@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 
+Description: Common template for provisioning resources needed for the Challenges
+
 Resources:
   SargePyPlate:
     Type: AWS::CloudFormation::Stack
