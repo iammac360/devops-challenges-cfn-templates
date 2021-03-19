@@ -25,7 +25,7 @@ Metadata:
 Parameters:
   EnvironmentName:
     Default: SargeApper
-    Description: Please Environment Name for this VPC
+    Description: Please enter the Environment Name for this VPC
     Type: String
 
   VpcCIDR:

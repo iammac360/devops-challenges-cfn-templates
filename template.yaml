@@ -2,11 +2,23 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: Common template for provisioning resources needed for the Challenges
 
+Parameters:
+  SubdomainPrefix:
+    Default: sarge
+    Description: Please enter the subdomain prefix
+    Type: String
+
 Resources:
   SargePyPlate:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: pyplate.yaml
+  SargeCertificates:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: certificates.yaml
+      Parameters:
+        SubdomainPrefix: !Ref SubdomainPrefix
   SargeVPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:

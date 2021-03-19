@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template creates certificates for tier1, tier2, tier3 challenges
+
+Parameters:
+  SubdomainPrefix:
+    Default: sarge
+    Description: Please enter the subdomain prefix
+    Type: String
+
+Resources:
+  SargeTierOneCert:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: shared/certificate-manager.yaml
+      Parameters:
+        DomainName: !Sub ${SubdomainPrefix}-tier1.apperdevops.com
+
+  SargeTierTwoCert:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: shared/certificate-manager.yaml
+      Parameters:
+        DomainName: !Sub ${SubdomainPrefix}-tier2.apperdevops.com
+
+  SargeTierThreeCert:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: shared/certificate-manager.yaml
+      Parameters:
+        DomainName: !Sub ${SubdomainPrefix}-tier3.apperdevops.com
