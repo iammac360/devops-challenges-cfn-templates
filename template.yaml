@@ -56,46 +56,46 @@ Resources:
               - Fn::GetAtt:
                 - SargeVPCStack
                 - Outputs.DatabaseSubnetB
-  # SargeEBTierOneStack:
-    # Type: AWS::CloudFormation::Stack
-    # DependsOn:
-      # - SargePyPlate
-      # - SargeVPCStack
-      # - SargeRDSStack
-    # Properties:
-      # TemplateURL: tier1/beanstalk.yaml
-      # Parameters:
-        # VPCId:
-          # Fn::GetAtt:
-          # - SargeVPCStack
-          # - Outputs.VPCId
-        # PublicCIDRs:
-          # Fn::Join:
-            # - ','
-            # -
-              # - Fn::GetAtt:
-                # - SargeVPCStack
-                # - Outputs.PublicSubnetACDIR
-              # - Fn::GetAtt:
-                # - SargeVPCStack
-                # - Outputs.PublicSubnetBCDIR
-        # PublicSubnets:
-          # Fn::Join:
-            # - ','
-            # -
-              # - Fn::GetAtt:
-                # - SargeVPCStack
-                # - Outputs.PublicSubnetA
-              # - Fn::GetAtt:
-                # - SargeVPCStack
-                # - Outputs.PublicSubnetB
-        # PrivateSubnets:
-          # Fn::Join:
-            # - ','
-            # -
-              # - Fn::GetAtt:
-                # - SargeVPCStack
-                # - Outputs.PrivateSubnetA
-              # - Fn::GetAtt:
-                # - SargeVPCStack
-                # - Outputs.PrivateSubnetB
+  SargeEBTierOneStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - SargePyPlate
+      - SargeVPCStack
+      - SargeRDSStack
+    Properties:
+      TemplateURL: tier1/beanstalk.yaml
+      Parameters:
+        VPCId:
+          Fn::GetAtt:
+          - SargeVPCStack
+          - Outputs.VPCId
+        PublicCIDRs:
+          Fn::Join:
+            - ','
+            -
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PublicSubnetACDIR
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PublicSubnetBCDIR
+        PublicSubnets:
+          Fn::Join:
+            - ','
+            -
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PublicSubnetA
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PublicSubnetB
+        PrivateSubnets:
+          Fn::Join:
+            - ','
+            -
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PrivateSubnetA
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PrivateSubnetB
