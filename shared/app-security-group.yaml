@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template creates Security Group for Application Servers
+
+Transform: [PyPlate]
+
+Parameters:
+  SGName:
+    Default: SargeSG
+    Description: Please Enter Security Group Name
+    Type: String
+
+  SGDescription:
+    Default: Security Group for sarge Applicate/web server resources.
+    Description: Please Enter Security Group Description
+    Type: String
+
+  VPCId:
+    Description: Please enter the VPC ID
+    Type: AWS::EC2::VPC::Id
+
+  Port:
+    Default: 1337
+    Description: Please enter a port/port range
+    Type: String
+
+  PublicCIDRs:
+    Default: '33.0.0.0/24,33.0.1.0/24'
+    Description: List of Public IP CDIRs
+    ConstraintDescription: "Must be a comma seperated list of subnet IDs"
+    Type: CommaDelimitedList
+
+Resources:
+  SargeSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Ref SGDescription
+      GroupName: !Ref SGName
+      VpcId: !Ref VPCId
+      SecurityGroupIngress: |
+        #!PyPlate
+        output = []
+        for cidr in params['PublicCIDRs']:
+            output.append({
+                "IpProtocol": 'tcp',
+                "FromPort": params['Port'],
+                "ToPort": params['Port'],
+                "CidrIp": cidr
+            })
+      Tags:
+      - Key: Name
+        Value: !Ref SGName
+      - Key: Tier
+        Value: Public
+      VpcId: !Ref VPCId
+
+Outputs:
+  SG:
+    Description: The Created Security Group
+    Value: !Ref SargeSG
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-SG'

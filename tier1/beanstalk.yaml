@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This templates provisions elastic beanstalk application and environment
+
+Transform: [PyPlate]
+
+Parameters:
+  ApplicationName:
+    Default: sarge-tier1
+    Description: Please enter the application name
+    Type: String
+
+  Description:
+    Default: This is Node JS Elastic Beanstalk App for Tier 1 Challenge
+    Description: Please enter the description
+    Type: String
+
+  EnvironmentName:
+    Default: sarge-tier1-dev
+    Description: Please enter the EnvironmentName
+    Type: String
+
+  EC2KeyName:
+    Default: sarge-apper
+    Description: Please enter the EC2 Key Name
+    Type: String
+
+  InstanceTypes:
+    Default: "t3a.micro,t3a.small"
+    ConstraintDescription: "Must be a comma seperated list of Instance Types: Refer to this link for the instance type names https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html"
+    Type: String
+
+  VPCId:
+    Description: Please enter the VPC ID
+    Type: AWS::EC2::VPC::Id
+
+  DomainName:
+    Default: sarge-tier1.apperdevops.com
+    Description: Please enter Domain name
+    Type: String
+
+  SGName:
+    Default: SargeSG
+    Description: Security Group for sarge Applicate/web server resources.
+    Type: String
+
+  SGDescription:
+    Default: Security Group for sarge Applicate/web server resources.
+    Description: Please Enter Security Group Description
+    Type: String
+
+  Port:
+    Default: 1337
+    Description: Please enter a port/port range
+    Type: String
+
+  PublicCIDRs:
+    Default: '33.0.0.0/24,33.0.1.0/24'
+    Description: List of Public IP CDIRs
+    ConstraintDescription: "Must be a comma seperated list of subnet IDs"
+    Type: CommaDelimitedList
+
+  PublicSubnets:
+    Description: List of Public Subnet Ids
+    ConstraintDescription: "Must be a comma seperated list of subnet IDs"
+    Type: CommaDelimitedList
+
+  PrivateSubnets:
+    Description: List of Private Subnet Ids
+    ConstraintDescription: "Must be a comma seperated list of subnet IDs"
+    Type: CommaDelimitedList
+
+Resources:
+  # SargeTierOneCert:
+    # Type: AWS::CloudFormation::Stack
+    # Properties:
+      # TemplateURL: ../shared/certificate-manager.yaml
+      # Parameters:
+        # DomainName: !Ref DomainName
+
+  SargeSG:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ../shared/app-security-group.yaml
+      Parameters:
+        SGName: !Ref SGName
+        SGDescription: !Ref SGDescription
+        VPCId: !Ref VPCId
+        Port: !Ref Port
+        PublicCIDRs:
+          Fn::Join:
+            - ','
+            - !Ref PublicCIDRs
+
+  SargeBeanstalkApp:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties:
+      ApplicationName: !Ref ApplicationName
+      Description: !Ref Description

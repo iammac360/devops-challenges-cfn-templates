@@ -23,38 +23,43 @@ Metadata:
       ParameterLabel
 
 Parameters:
+  EnvironmentName:
+    Default: SargeApper
+    Description: Please Environment Name for this VPC
+    Type: String
+
   VpcCIDR:
-    Default: 33.0.0.0/16
+    Default: 10.33.0.0/16
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
 
   PublicSubnetACDIR:
-    Default: 33.0.0.0/24
+    Default: 10.33.0.0/24
     Description: Please enter the IP range (CIDR notation) for this Public Subnet A
     Type: String
 
   PublicSubnetBCDIR:
-    Default: 33.0.1.0/24
+    Default: 10.33.1.0/24
     Description: Please enter the IP range (CIDR notation) for this Public Subnet B
     Type: String
 
   PrivateSubnetACDIR:
-    Default: 33.0.10.0/24
+    Default: 10.33.10.33/24
     Description: Please enter the IP range (CIDR notation) for this Private Subnet A
     Type: String
 
   PrivateSubnetBCDIR:
-    Default: 33.0.11.0/24
+    Default: 10.33.11.0/24
     Description: Please enter the IP range (CIDR notation) for this Private Subnet B
     Type: String
 
   DatabaseSubnetACDIR:
-    Default: 33.0.100.0/24
+    Default: 10.33.100.0/24
     Description: Please enter the IP range (CIDR notation) for this Database Subnet A
     Type: String
 
   DatabaseSubnetBCDIR:
-    Default: 33.0.101.0/24
+    Default: 10.33.101.0/24
     Description: Please enter the IP range (CIDR notation) for this Database Subnet B
     Type: String
 
@@ -69,7 +74,7 @@ Resources:
       InstanceTenancy: default
       Tags: 
       - Key: Name
-        Value: SargeVPC
+        Value: !Sub ${EnvironmentName}-VPC
 
   # Create Internet Gateway
   SargeIG:
@@ -77,7 +82,7 @@ Resources:
     Properties:
       Tags:
       - Key: Name
-        Value: SargeIG
+        Value: !Sub ${EnvironmentName}-IG
 
   # Attach Internet Gateway to VPC
   IGAttachmentToVPC:
@@ -90,24 +95,26 @@ Resources:
   PublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: !Select [ 0, !GetAZs 'ap-southeast-1' ] #ap-southeast-1a
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
       CidrBlock: !Ref PublicSubnetACDIR
       MapPublicIpOnLaunch: true
       Tags: 
       - Key: Name
-        Value: SargePublicSubnetA
+        Value: !Sub ${EnvironmentName}-PublicSubnetA
+      - Key: Tier
+        Value: Public
       VpcId: !Ref SargeVPC
 
   # Create Public Subnet B
   PublicSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: !Select [ 1, !GetAZs 'ap-southeast-1' ] #ap-southeast-1b
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
       CidrBlock: !Ref PublicSubnetBCDIR
       MapPublicIpOnLaunch: true
       Tags:
       - Key: Name
-        Value: SargePublicSubnetB
+        Value: !Sub ${EnvironmentName}-PublicSubnetB
       - Key: Tier
         Value: Public
       VpcId: !Ref SargeVPC
@@ -118,7 +125,7 @@ Resources:
     Properties:
       Tags:
       - Key: Name
-        Value: SargePublicRouteTable
+        Value: !Sub ${EnvironmentName}-PublicRouteTable
       - Key: Tier
         Value: Public
       VpcId: !Ref SargeVPC
@@ -126,20 +133,21 @@ Resources:
   # Add a Public Route to the Route Table
   PublicRoute:
     Type: AWS::EC2::Route
+    DependsOn: IGAttachmentToVPC
     Properties:
+      RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref SargeIG
-      RouteTableId: !Ref PublicRouteTable
 
   # Associate PublicSubnetA with the Public Route Table
-  PublicSubnetA2RouteTableAssociation:
+  PublicSubnetARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties: 
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnetA
 
   # Associate PublicSubnetB with the Public Route Table
-  PublicSubnetA2RouteTableAssociation:
+  PublicSubnetBRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties: 
       RouteTableId: !Ref PublicRouteTable
@@ -149,123 +157,164 @@ Resources:
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
     Properties: 
-      AvailabilityZone: !Select [ 0, !GetAZs 'ap-southeast-1' ] #ap-southeast-1a
+      VpcId: !Ref SargeVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
       CidrBlock: !Ref PrivateSubnetACDIR
       MapPublicIpOnLaunch: false
       Tags: 
       - Key: Name
-        Value: SargePrivateSubnetA
+        Value: !Sub ${EnvironmentName}-PrivateSubnetA
       - Key: Tier
         Value: App
-      VpcId: !Ref SargeVPC
 
   # Create Private Subnet B
   PrivateSubnetB:
     Type: AWS::EC2::Subnet
     Properties: 
-      AvailabilityZone: !Select [ 1, !GetAZs 'ap-southeast-1' ] #ap-southeast-1b
+      VpcId: !Ref SargeVPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
       CidrBlock: !Ref PrivateSubnetBCDIR
       MapPublicIpOnLaunch: false
       Tags: 
       - Key: Name
-        Value: SargePrivateSubnetB
+        Value: !Sub ${EnvironmentName}-PrivateSubnetB
       - Key: Tier
         Value: App
-      VpcId: !Ref SargeVPC
 
   # Create Database Subnet A
   DatabaseSubnetA:
     Type: AWS::EC2::Subnet
     Properties: 
-      AvailabilityZone: !Select [ 0, !GetAZs 'ap-southeast-1' ] #ap-southeast-1a
+      VpcId: !Ref SargeVPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
       CidrBlock: !Ref DatabaseSubnetACDIR
       MapPublicIpOnLaunch: false
       Tags: 
       - Key: Name
-        Value: SargeDatabaseSubnetA
+        Value: !Sub ${EnvironmentName}-DatabaseSubnetA
       - Key: Tier
         Value: Database
-      VpcId: !Ref SargeVPC
 
   # Create Database Subnet B
   DatabaseSubnetB:
     Type: AWS::EC2::Subnet
     Properties: 
-      AvailabilityZone: !Select [ 1, !GetAZs 'ap-southeast-1' ] #ap-southeast-1b
+      VpcId: !Ref SargeVPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
       CidrBlock: !Ref DatabaseSubnetBCDIR
       MapPublicIpOnLaunch: false
       Tags: 
       - Key: Name
-        Value: SargeDatabaseSubnetB
+        Value: !Sub ${EnvironmentName}-DatabaseSubnetB
       - Key: Tier
         Value: Database
-      VpcId: !Ref SargeVPC
 
   # Create Elastic IP For NAT Gateway
-  NatEIP:
+  NatEIP1:
     Type: AWS::EC2::EIP
+    DependsOn: IGAttachmentToVPC
     Properties: 
       Domain: vpc
       Tags:
       - Key: Name
-        Value: SargeNatEIP
+        Value: !Sub ${EnvironmentName}-NatEIP1
 
-  
-  # Create NAT Gateway
-  SargeNG:
+  # Create Elastic IP For NAT Gateway
+  NatEIP2:
+    Type: AWS::EC2::EIP
+    DependsOn: IGAttachmentToVPC
+    Properties: 
+      Domain: vpc
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName}-NatEIP2
+
+  # Create NAT Gateway 1
+  SargeNG1:
     Type: AWS::EC2::NatGateway
     Properties: 
-      AllocationId: !GetAtt NatEIP.AllocationId
+      AllocationId: !GetAtt NatEIP1.AllocationId
       SubnetId: !Ref PublicSubnetA
       Tags: 
       - Key: Name
-        Value: SargeNATGateway
+        Value: !Sub ${EnvironmentName}-NATGateway1
 
-  # Create Private Route Table
-  PrivateRouteTable:
+  # Create NAT Gateway 2
+  SargeNG2:
+    Type: AWS::EC2::NatGateway
+    Properties: 
+      AllocationId: !GetAtt NatEIP2.AllocationId
+      SubnetId: !Ref PublicSubnetB
+      Tags: 
+      - Key: Name
+        Value: !Sub ${EnvironmentName}-NATGateway2
+
+  # Create Private Route Table 1
+  PrivateRouteTable1:
     Type: AWS::EC2::RouteTable
     Properties:
+      VpcId: !Ref SargeVPC
       Tags:
       - Key: Name
-        Value: SargeDefaultRouteTable
+        Value: !Sub ${EnvironmentName}-Private Routes (AZ1)
       - Key: Tier
         Value: Private
+
+  # Create Private Route Table 2
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
       VpcId: !Ref SargeVPC
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName}-Private Routes (AZ2)
+      - Key: Tier
+        Value: Private
 
   # Add a Private Route to the Route Table
-  PrivateRoute:
+  PrivateRoute1:
     Type: AWS::EC2::Route
+    DependsOn: IGAttachmentToVPC
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref SargeNG
-      RouteTableId: !Ref PrivateRouteTable
+      NatGatewayId: !Ref SargeNG1
+      RouteTableId: !Ref PrivateRouteTable1
+
+  # Add a Private Route to the Route Table
+  PrivateRoute2:
+    Type: AWS::EC2::Route
+    DependsOn: IGAttachmentToVPC
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref SargeNG2
+      RouteTableId: !Ref PrivateRouteTable2
 
   # Associate PrivateSubnetA with the Private Route Table
-  PrivateSubnetA2RouteTableAssociation:
+  PrivateSubnetARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnetA
 
   # Associate PrivateSubnetB with the Private Route Table
-  PrivateSubnetB2RouteTableAssociation:
+  PrivateSubnetBRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable2
       SubnetId: !Ref PrivateSubnetB
 
   # Associate DatabaseSubnetA with the Database Route Table
-  DatabaseSubnetA2RouteTableAssociation:
+  DatabaseSubnetARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref DatabaseSubnetA
 
   # Associate DatabaseSubnetB with the Database Route Table
-  DatabaseSubnetB2RouteTableAssociation:
+  DatabaseSubnetBRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable2
       SubnetId: !Ref DatabaseSubnetB
 
 Outputs:
