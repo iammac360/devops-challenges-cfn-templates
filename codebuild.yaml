@@ -1,0 +1,136 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template creates CodeBuild resource for building and pushing container images to ECR
+
+Parameters:
+  Name:
+    Default: sargeapper-ci
+    Description: Please enter the Codebuild Project Name
+    Type: String
+
+  DockerRepo:
+    Default: 329511059546.dkr.ecr.ap-southeast-1.amazonaws.com/sarge-express-miniapp 
+    Description: Please enter the Docker Repo URL
+    Type: String
+
+  ImageName:
+    Default: sarge-express-miniapp
+    Description: Please enter the Image Name
+    Type: String
+
+Resources:
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Ref Name
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        PrivilegedMode: true
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: 
+          Fn::Sub: |
+            version: 0.2
+
+            env:
+              variables:
+                NODE_ENV: "production"
+                DOCKER_REPO: "${DockerRepo}"
+                REGION: "${AWS::Region}"
+
+            phases:
+              install:
+                runtime-versions:
+                    docker: 18
+              pre_build:
+                commands:
+                   - echo Logging in to Amazon ECR....
+                   - aws --version
+                   - $(aws ecr get-login --no-include-email --region $REGION)
+                   - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+              build:
+                commands:
+                   - echo Build started on date
+                   - echo Building the Docker image...
+                   - docker build -t $DOCKER_REPO:latest .
+                   - docker tag $DOCKER_REPO:latest $DOCKER_REPO:$COMMIT_HASH
+                   - echo Build completed on date
+              post_build:
+                commands:
+                   - echo pushing to repo
+                   - docker push $DOCKER_REPO:$COMMIT_HASH
+                   - docker push $DOCKER_REPO:latest
+                   - echo "Writing image definitions file.."
+                   - printf '[{"name":"${ImageName}","imageUri":"%s"}]' $DOCKER_REPO:$COMMIT_HASH > imageDetail.json
+                   - cat imageDetail.json
+            artifacts:
+              files:
+                - imageDetail.json
+      TimeoutInMinutes: 10
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codebuild.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: !Sub ${Name}-CodeBuildEssentials
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 'logs:CreateLogGroup'
+                - 'logs:CreateLogStream'
+                - 'logs:PutLogEvents'
+                Effect: Allow
+                Resource: 
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${Name}'
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${Name}:*'
+              - Action:
+                - 's3:PutObject'
+                - 's3:GetObject'
+                - 's3:GetObjectVersion'
+                - 's3:GetBucketAcl'
+                - 's3:GetBucketLocation'
+                Effect: Allow
+                Resource: 
+                - !Sub 'arn:aws:s3:::codepipeline-${AWS::Region}-*'
+              - Action:
+                - 'codebuild:CreateReportGroup'
+                - 'codebuild:CreateReport'
+                - 'codebuild:UpdateReport'
+                - 'codebuild:BatchPutTestCases'
+                - 'codebuild:BatchPutCodeCoverages'
+                Effect: Allow
+                Resource: 
+                - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${Name}-*'
+        - PolicyName: !Sub ${Name}-CodeBuildECRAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ecr:GetAuthorizationToken"
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:BatchGetImage"
+                  - "ecr:CompleteLayerUpload"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:InitiateLayerUpload"
+                  - "ecr:PutImage"
+                  - "ecr:UploadLayerPart"
+                  - "ecr:InitiateLayerUpload"
+                Resource: '*'
