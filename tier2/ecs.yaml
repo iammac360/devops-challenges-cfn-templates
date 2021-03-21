@@ -42,11 +42,8 @@ Resources:
         ExecuteCommandConfiguration:
           Logging: DEFAULT
       CapacityProviders:
-        - FARGATE
         - FARGATE_SPOT
       DefaultCapacityProviderStrategy:
-        - CapacityProvider: FARGATE
-          Weight: 1
         - CapacityProvider: FARGATE_SPOT
           Weight: 1
       Tags:
@@ -213,3 +210,44 @@ Resources:
                 Action:
                   - 'ssm:GetParameters'
                 Resource: '*'
+
+  SargeECSServiceAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: sargeECSServiceAutoScalingRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - application-autoscaling.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole'
+
+
+  SargeAutoScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 4
+      MinCapacity: 2
+      ResourceId: !Join ["/", [service, !Ref SargeECSCluster, "sarge-express-miniapp"]]
+      RoleARN: !GetAtt SargeECSServiceAutoScalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+      
+  SargeAutoScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ServiceAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref SargeAutoScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleInCooldown: 10
+        ScaleOutCooldown: 10
+        TargetValue: 70
