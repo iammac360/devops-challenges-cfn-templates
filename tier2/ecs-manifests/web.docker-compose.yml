@@ -10,4 +10,4 @@ services:
         awslogs-region: ap-southeast-1
         awslogs-stream-prefix: sarge-express-miniapp
     ports:
-      - "0:8080"
+      - "8080:8080"

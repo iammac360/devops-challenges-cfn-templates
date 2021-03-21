@@ -1,6 +1,10 @@
 version: 1
 task_definition:
+  ecs_network_mode: awsvpc
   task_execution_role: ecsTaskExecutionRole
+  task_size:
+    cpu_limit: 256
+    mem_limit: 512
   services:
     sarge-express-miniapp:
       essential: true
@@ -13,3 +17,17 @@ task_definition:
           value_from: arn:aws:ssm:ap-southeast-1:329511059546:parameter/sarge.DB_USERNAME
         - name: PASSWORD
           value_from: arn:aws:ssm:ap-southeast-1:329511059546:parameter/sarge.DB_PASSWORD
+
+run_params:
+  network_configuration:
+    awsvpc_configuration:
+      subnets:
+        - subnet-03b108f8c1e5b050a
+        - subnet-06ac82270f82cdb6e
+      security_groups:
+        - sg-0e5dca107a1e888a6
+      assign_public_ip: DISABLED
+  task_placement:
+    strategy:
+      - field: "attribute:ecs.availability-zone"
+        type: spread
