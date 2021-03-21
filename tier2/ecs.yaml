@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template creates ECS Cluster
+
+Parameters:
+  ClusterName:
+    Default: sarge-ecs-tier2-dev
+    Description: Please enter the Cluster Name
+    Type: String
+
+Resources:
+  SargeECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref ClusterName
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Configuration:
+        ExecuteCommandConfiguration:
+          Logging: DEFAULT
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+        - CapacityProvider: FARGATE_SPOT
+          Weight: 1
+      Tags:
+      - Key: Name
+        Value: !Ref ClusterName

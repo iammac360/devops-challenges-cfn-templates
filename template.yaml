@@ -56,6 +56,17 @@ Resources:
               - Fn::GetAtt:
                 - SargeVPCStack
                 - Outputs.DatabaseSubnetB
+  SargeECSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - SargePyPlate
+      - SargeVPCStack
+      - SargeRDSStack
+    Properties:
+      TemplateURL: tier2/ecs.yaml
+      Parameters:
+        ClusterName: sarge-ecs-tier2-dev
+
   # SargeEBTierOneStack:
     # Type: AWS::CloudFormation::Stack
     # DependsOn:
