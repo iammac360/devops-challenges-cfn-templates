@@ -80,16 +80,16 @@ Resources:
           Fn::GetAtt:
           - SargeVPCStack
           - Outputs.VPCId
-        BackendCIDRs:
+        PublicCIDRs:
           Fn::Join: 
             - ','
             -
               - Fn::GetAtt:
                 - SargeVPCStack
-                - Outputs.PrivateSubnetACDIR
+                - Outputs.PublicSubnetACDIR
               - Fn::GetAtt:
                 - SargeVPCStack
-                - Outputs.PrivateSubnetBCDIR
+                - Outputs.PublicSubnetBCDIR
 
         # Certificates:
           # Fn::Join:

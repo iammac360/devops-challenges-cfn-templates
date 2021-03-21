@@ -25,8 +25,8 @@ Parameters:
     Description: Please enter the VPC ID
     Type: AWS::EC2::VPC::Id
 
-  BackendCIDRs:
-    Default: '10.33.10.33/24,10.33.11.0/24'
+  PublicCIDRs:
+    Default: '10.33.0.33/24,10.33.0.0/24'
     Description: Please enter the CIDR blocks(comma seperated)
     Type: CommaDelimitedList 
 
@@ -68,13 +68,7 @@ Resources:
       SecurityGroupIngress: |
         #!PyPlate
         output = []
-        for cidr in params['BackendCIDRs']:
-            output.append({
-                "IpProtocol": 'tcp',
-                "FromPort": 32768,
-                "ToPort": 61000,
-                "CidrIp": cidr
-            })
+        for cidr in params['PublicCIDRs']:
             output.append({
                 "IpProtocol": 'tcp',
                 "FromPort": 8080,
@@ -127,10 +121,8 @@ Resources:
       Port: 80
       Protocol: HTTP
       DefaultActions:
-        - Type: redirect
-          RedirectConfig:
-            Protocol: HTTPS
-            StatusCode: HTTP_301
+        - Type: forward
+          TargetGroupArn: !Ref SargeDefaultTargetGroup
 
   SargeECSLoadBalancerListenerSSL:
     Type: AWS::ElasticLoadBalancingV2::Listener
