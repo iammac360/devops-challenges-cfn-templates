@@ -1,6 +1,6 @@
 version: "3"
 services:
-  mbhive-web:
+  sarge-express-miniapp:
     image: 329511059546.dkr.ecr.ap-southeast-1.amazonaws.com/sarge-express-miniapp:latest
     command: npm start
     logging:
