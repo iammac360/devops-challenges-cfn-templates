@@ -2,11 +2,33 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: This template creates ECS Cluster
 
+Transform: [PyPlate]
+
 Parameters:
   ClusterName:
     Default: sarge-ecs-tier2-dev
     Description: Please enter the Cluster Name
     Type: String
+
+  PublicSubnets:
+    Description: List of Public Subnet Ids
+    ConstraintDescription: "Must be a comma seperated list of subnet IDs"
+    Type: CommaDelimitedList
+
+  Certificates:
+    Default: 'arn:aws:acm:ap-southeast-1:329511059546:certificate/71cae362-9542-4910-a635-75ac71eca1ac'
+    Description: List of Certificate ARNs
+    ConstraintDescription: "Must be a comma seperated list of List of Certificate ARNs"
+    Type: CommaDelimitedList
+
+  VPCId:
+    Description: Please enter the VPC ID
+    Type: AWS::EC2::VPC::Id
+
+  BackendCIDRs:
+    Default: '10.33.10.33/24,10.33.11.0/24'
+    Description: Please enter the CIDR blocks(comma seperated)
+    Type: CommaDelimitedList 
 
 Resources:
   SargeECSCluster:
@@ -30,3 +52,107 @@ Resources:
       Tags:
       - Key: Name
         Value: !Ref ClusterName
+
+  SargeECSLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      RetentionInDays: 7
+      LogGroupName: !Ref ClusterName
+
+  SargeECSServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group For Sarge ECS LB resource
+      GroupName: !Sub ${ClusterName}-ECS-Service-SG
+      VpcId: !Ref VPCId
+      SecurityGroupIngress: |
+        #!PyPlate
+        output = []
+        for cidr in params['BackendCIDRs']:
+            output.append({
+                "IpProtocol": 'tcp',
+                "FromPort": 32768,
+                "ToPort": 61000,
+                "CidrIp": cidr
+            })
+      Tags:
+      - Key: Name
+        Value: !Sub ${ClusterName}-ECS-Service-SG
+      - Key: Tier
+        Value: ECSServie
+
+  SargeECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group For Sarge ECS LB resource
+      GroupName: !Sub ${ClusterName}-ECS-LB-SG
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - IpProtocol: 'tcp'
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: 'tcp'
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: !Sub ${ClusterName}-ECS-LB-SG
+      - Key: Tier
+        Value: LoadBalancer
+
+  SargeECSLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${ClusterName}-LB
+      Subnets: !Ref PublicSubnets
+      SecurityGroups:
+        - !Ref SargeECSSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterName}-LB
+
+  SargeECSLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref SargeECSLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            StatusCode: HTTP_301
+
+  SargeECSLoadBalancerListenerSSL:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref SargeECSLoadBalancer
+      Port: 443
+      Certificates:
+        - CertificateArn: !Ref CertificateARN
+      Certificates: |
+        #!PyPlate
+        output = []
+        for cert in params['Certificates']:
+            output.append({
+                "CertificateArn": cert
+            })
+      Protocol: HTTPS
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref SargeDefaultTargetGroup
+
+  SargeDefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${ClusterName}-TG
+      VpcId: !Ref VPCId
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      Port: 8080
+      Protocol: HTTP
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterName}-TG

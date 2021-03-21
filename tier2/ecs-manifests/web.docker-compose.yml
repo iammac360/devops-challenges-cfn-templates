@@ -1,0 +1,13 @@
+version: "3"
+services:
+  mbhive-web:
+    image: 329511059546.dkr.ecr.ap-southeast-1.amazonaws.com/sarge-express-miniapp:latest
+    command: npm start
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: sarge-ecs-tier2-dev
+        awslogs-region: ap-southeast-1
+        awslogs-stream-prefix: sarge-express-miniapp
+    ports:
+      - "0:8080"

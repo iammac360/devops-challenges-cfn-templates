@@ -66,6 +66,38 @@ Resources:
       TemplateURL: tier2/ecs.yaml
       Parameters:
         ClusterName: sarge-ecs-tier2-dev
+        PublicSubnets:
+          Fn::Join:
+            - ','
+            -
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PublicSubnetA
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PublicSubnetB
+        VPCId:
+          Fn::GetAtt:
+          - SargeVPCStack
+          - Outputs.VPCId
+        BackendCIDRs:
+          Fn::Join: 
+            - ','
+            -
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PrivateSubnetACDIR
+              - Fn::GetAtt:
+                - SargeVPCStack
+                - Outputs.PrivateSubnetBCDIR
+
+        # Certificates:
+          # Fn::Join:
+            # - ','
+            # -
+              # - Fn::GetAtt:
+                # - SargeCertificates
+                # - Outputs.TierOneCert
 
   # SargeEBTierOneStack:
     # Type: AWS::CloudFormation::Stack

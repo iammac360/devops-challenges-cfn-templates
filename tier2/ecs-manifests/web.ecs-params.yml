@@ -1,0 +1,15 @@
+version: 1
+task_definition:
+  task_execution_role: ecsTaskExecutionRole
+  services:
+    sarge-express-miniapp:
+      essential: true
+      secrets:
+        - name: DATABASE
+          value_from: arn:aws:ssm:ap-southeast-1:329511059546:parameter/sarge.DB_DATABASE
+        - name: HOST
+          value_from: arn:aws:ssm:ap-southeast-1:329511059546:parameter/sarge.DB_HOST
+        - name: USERNAME
+          value_from: arn:aws:ssm:ap-southeast-1:329511059546:parameter/sarge.DB_USERNAME
+        - name: PASSWORD
+          value_from: arn:aws:ssm:ap-southeast-1:329511059546:parameter/sarge.DB_PASSWORD

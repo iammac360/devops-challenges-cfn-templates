@@ -29,3 +29,25 @@ Resources:
       TemplateURL: shared/certificate-manager.yaml
       Parameters:
         DomainName: !Sub ${SubdomainPrefix}-tier3.apperdevops.com
+
+Outputs:
+  TierOneCert:
+    Description: Tier One SSL Certificate
+    Value: !Ref SargeTierOneCert
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-TierOneCert'
+
+  TierTwoCert:
+    Description: Tier Two SSL Certificate
+    Value: !Ref SargeTierTwoCert
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-TierTwoCert'
+
+  TierThreeCert:
+    Description: Tier Three SSL Certificate
+    Value: !Ref SargeTierThreeCert
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-TierThreeCert'
