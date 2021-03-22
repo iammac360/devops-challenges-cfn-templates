@@ -10,7 +10,7 @@ You need to have the following in order for the provisioning scripts to work:
 * AWS CLI v2 - https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html
 * ECS CLI - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_CLI_installation.html
 
-## Steps to provision core resources(VPC, RDS, IAM Roles/Policies, ECS, PyPlate Lambda handler, Certificates, ECS Cluster)
+## Steps to provision core resources(VPC, RDS, IAM Roles/Policies, ECS, PyPlate CF Macro and Lambda handler, Certificates, ECS Cluster)
 
 1. Clone this repository
 
