@@ -5,3 +5,4 @@ sarge-apper.pem
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+ecs-cli.asc
