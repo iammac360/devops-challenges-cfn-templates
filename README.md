@@ -178,5 +178,6 @@ https://ap-southeast-1.console.aws.amazon.com/codesuite/codepipeline/pipelines/s
 
 ## Working URLs:
 
-Tier 1: https://sarge-tier1.apperdevops.com
-Tier 2: https://sarge-tier2.apperdevops.com
+* Tier 1: https://sarge-tier1.apperdevops.com
+* Tier 2: https://sarge-tier2.apperdevops.com
+* Tier 3: https://sarge-tier3.apperdevops.com
