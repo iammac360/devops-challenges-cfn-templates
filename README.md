@@ -23,7 +23,7 @@ My VPC environment setup comprises of:
 * 1 Public Route Table. Attached to public subnets
 * 2 Private Route Tables. Attached to both private Nat gateways
 
-This is to ensure that my VPC is HA. I also provisioned the elastic beanstalk, ECS and EKS is HA and utilizes auto scaling.
+This is to ensure that my VPC is HA. I also provisioned the elastic beanstalk, ECS and EKS in an HA setup and utilizes auto scaling.
 
 ## Prerequisites:
 
@@ -170,6 +170,11 @@ ecs-cli compose \
   --force-deployment
 ```
 
+## Pipeline Link:
+
+NOTE: This is a mono pipeline for all the 3 challenges. The source comes from codecommit repository.
+
+https://ap-southeast-1.console.aws.amazon.com/codesuite/codepipeline/pipelines/sargeapper-cicd/view?region=ap-southeast-1
 
 ## Working URLs:
 
