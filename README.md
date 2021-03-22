@@ -2,6 +2,29 @@
 
 ![Branding](https://media-exp1.licdn.com/dms/image/C510BAQHAhem3MAGMOw/company-logo_100_100/0/1548069481911?e=1619654400&v=beta&t=RMd-5dJ-YxQ475FznaYdeTFtQLf1NPNGCIw8g_Z5q-8) 
 
+
+## Background
+
+My solution to all the challenges is to provide a common environment for all resources, instead of creating a dedicated VPC, RDS Database and so on(which is a waste of money since the app is the same for all tiers)
+I also decided to provision a single pipeline for all the challenges since the app and the build stage is the same.
+
+## Basic Enviroment setup
+
+The challenges expected us to provision a working application, highly available, auto scaled, secured(HTTPS, Security Groups, resource ACL thru IAM roles) and utilizing the CI/CD pipelines.
+Also, the resources must be provisioned with IaC(AWS Cloudformation).
+
+My VPC environment setup comprises of:
+* A VPC (10.33.0.0/16)
+* 2 Public Subnets for each AZ(a and b)
+* 2 Private Subnets for each AZ(a and b)
+* 2 Database Subnets for each AZ(a and b)
+* Internet Gateway
+* 2 Nat Gateways for each AZ(a and b) with dedicated EIP each. Attached to both private subnets
+* 1 Public Route Table. Attached to public subnets
+* 2 Private Route Tables. Attached to both private Nat gateways
+
+This is to ensure that my VPC is HA. I also provisioned the elastic beanstalk, ECS and EKS is HA and utilizes auto scaling.
+
 ## Prerequisites:
 
 You need to have the following in order for the provisioning scripts to work:
@@ -105,112 +128,50 @@ eb setenv PASSWORD=$PASSWORD USERNAME=sarge DATABASE=sarge HOST=$HOST
 eb deploy
 ```
 
+## Steps to provision Tier2 Challenge(ECS)
 
-&nbsp;
-* What you will build should satisfy the challenge statement/requirements.
-&nbsp;
-* Your code should be human readable and uses intellectual words.
-&nbsp;
-* We at Apper, take code organization and application architecture quite seriously.
-&nbsp;
-* The challenge are divided into three tiers based on the knowledge and experience required to complete them.
-  **Note**: *It's ok not to finish all of them but completing higher tier is very much encourage.*
-&nbsp;
-* Keep in touch with us and feel free to message us for questions and clarifications.
+1. Assuming you already have the `sarge-cfn-templates` project on your machine. Go to:
 
-## The Challenge
+```
+cd sarge-cfn-templates/tier2/ecs-manifests
+```
 
-Challenges are divided into three tiers based on the knowledge and experience
-required to complete them.
+2. Go to the AWS management console and search `Parameter store` Feature. Or just click this ![https://ap-southeast-1.console.aws.amazon.com/systems-manager/parameters/?region=ap-southeast-1&tab=Table] https://ap-southeast-1.console.aws.amazon.com/systems-manager/parameters/?region=ap-southeast-1&tab=Table
 
-| Tier | DevOps Profile                                                                                                                                                |
-| :--: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  1   | DevOps in the early stages of their learning journey. Those who are typically experienced deploying user-facing applications such as nodejs apps, ruby web apps, and php laravel apps on virtual machines or in cloud providers such as AWS, GCP, Azure or Heroku. Someone who can leverage ElasticBeanstalk. Also has deep knowledge on Linux Fundamentals and Databases that can leverage AWS RDS for MySQL and PostgreSQL and etc. Basic understanding on AWS basic services such as  VPC, Security Groups, S3, Route53, Cloudfront, Application Load Balancer, EC2 and IAM.                |
-|  2   | DevOps at an intermediate stage of learning and experience. Deep understanding on Docker and Containerization. Can deploy containerize apps or api services on Amazon ECS. They are comfortable in automation tools such as Cloudformation or Terraform and Docker. Comfortable using development tools such as AWS CodePipeline, CodeBuild, CodeCommit and CodeDeploy for CI/CD. Have experience automating applications using scripts and other third party libraries. |
-|  3   | DevOps who have all of the above, and are learning more advanced techniques like implementing microservices applications using Kubernetes and can leverage AWS EKS                   |
+3. Click `Create parameter` and create the following:
+  * Parameter Name: sarge.DB_DATABASE
+    Parameter Type: Secure String
+    Parameter Value: (your database name)
+  * Parameter Name: sarge.DB_HOST
+    Parameter Type: Secure String
+    Parameter Value: (your database host. You can check the RDS console for the host reference)
+  * Parameter Name: sarge.DB_PASSWORD
+    Parameter Type: Secure String
+    Parameter Value: (your database password)
+  * Parameter Name: sarge.DB_USERNAME
+    Parameter Type: Secure String
+    Parameter Value: (your database username)
+
+4. Once you have all the SSM parameter set, you can now create the initial ECS service and task definition using `ecs-cli`.
+
+```
+# You can check the provisioned target group arn at the aws management console
+TARGET_GROUP_ARN=arn:aws:elasticloadbalancing:ap-southeast-1:329511059546:targetgroup/sarge-ecs-tier2-dev-TargetGroup/ab1a5f859a2c5658
+AWS_PROFILE=apper_challenge
+
+ecs-cli compose \
+  --file web.docker-compose.yml \
+  --ecs-params web.ecs-params.yml \
+  --aws-profile $AWS_PROFILE \
+  --project-name sarge-express-miniapp \
+  --cluster sarge-ecs-tier2-dev service up \
+  --target-groups "targetGroupArn=$TARGET_GROUP_ARN,containerName=sarge-express-miniapp,containerPort=8080" \
+  --launch-type FARGATE \
+  --force-deployment
+```
 
 
-## Requirements
-**🌟 What You’ll need to build 🌟**
+## Working URLs:
 
-This repository includes a simple and very minimal express nodejs app in the root directory (**./express-minapp**). What you need to do is use this user-facing application and deploy it on AWS. AWS Account will be provided by apper.ph. The deployment and infrastructure varies differently on each tier. Please refer to the diagram and instructions on each tier.
-
-**🌟 What you are encouraged to use and our judging criteria 🌟**
-
-Automation and CI/CD are the heart of DevOps. So you're encourage to use development tools, CI/CD tools and automation tools accordingly at all times.
-
-![System diagram](assets/release.jpg)
-
-* Implement IaC (Infrastructure as a code) leveraging AWS Cloudformation
-* Implement CI/CD using AWS Codepipeline, CodeCommit, CodeBuild and CodeDeploy (Optional)
-* Reusability of IaC templates
-* Application is functional
-* Securing the application using AWS Security Groups, AWS Certificate for HTTPS and proper AWS services access-control using IAM Roles.
-* High Availability
-* Auto Scaling
-
-&nbsp;
-### :ledger: Tier-1: Beginner Challenge
-**Architecture diagram - ElasticBeanstalk**
-
-![System diagram](assets/ElasticBeanstalk.png)
-
-* Implement VPC
-* Implement RDS
-* Implement SecurityGroups
-* Implement IAM Roles and Access Policies
-* Implement Route53 -> Cloudfront -> Application Loadbalancer -> Elastic Beanstalk Integration and Connectivity (use apperdevops.com)
-* Implement Elastic Beanstalk Web Server and RDS Connectivity
-* Implement Elastic Beanstalk Custom Config using .ebextensions
-* Implement CI/CD to ElasticBeanstalk using AWS CodePipeline. (No manual upload of application zip file.)
-
-&nbsp;
-### :ledger: Tier-2: Intermediate Challenge
-**Architecture diagram - AWS ECS** 
-![System diagram](assets/ECS.png)
-
-* Implement VPC
-* Implement RDS
-* Implement SecurityGroups
-* Implement IAM Roles and Access Policies
-* Implement Route53 -> Cloudfront -> Application Loadbalancer -> AWS ECS Integration and Connectivity (use apperdevops.com)
-* Implement AWS ECS Web Server and RDS Connectivity
-* Dockerize the application. Add Dockerfile.
-* Push image to AWS ECR
-* Implement CI/CD to AWS ECS using AWS CodePipeline.
-
-&nbsp;
-### :ledger: Tier-3: Advanced Challenge
-**Architecture diagram - Kubernetes AWS EKS**
-![System diagram](assets/EKS.png)
-
-* Implement VPC
-* Implement RDS
-* Implement SecurityGroups
-* Implement IAM Roles and Access Policies
-* Implement EKS Managed Nodegroups
-* Implement Route53 -> Cloudfront -> Application Loadbalancer -> AWS EKS microservices Integration and Connectivity (use apperdevops.com)
-* Implement AWS EKS microservices and RDS Connectivity
-* Implement readable kubernetes manifest files
-* Implement CI/CD to AWS EKS using AWS CodePipeline.
-
-&nbsp;
-## ✅ Submission Checklist
-
-* Here at Apper, we use Basecamp as our official communication channel and project management tool. We will add you during the onboarding process.
-&nbsp;
-* AWS Account will be provided by Apper. It will be provision during the onboarding process.
-&nbsp;
-* Create your own Github repository. (e.g. repo name: surname-devops-challenge-project-id)
-&nbsp;
-* Commit all your work on the repository. It should include all the templates, manifest, configuration or any files that you've created to implement each challenges. We will review it base on our judging criteria stated above.
-&nbsp;
-* Tier 1 and 2 completion should be 1 week.
-&nbsp;
-* Tier 1, 2 and 3 completion should be 2 weeks.
-&nbsp;  
-* Submit the repo name, repo link and commit hash on or before the final day (11:59:59 UTC+8) of the given time frame on the DevOps Candidate message thread on our Basecamp.
-&nbsp;
-* Submit the working url on or before the final day (11:59:59 UTC+8) of the given time frame on the DevOps Candidate message thread on our Basecamp. We should be able to access the URL/ and URL/health.
-&nbsp;
-![System diagram](assets/working-page.jpg)
+Tier 1: https://sarge-tier1.apperdevops.com
+Tier 2: https://sarge-tier2.apperdevops.com
