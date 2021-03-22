@@ -163,7 +163,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags: 
       - Key: Name
-        Value: !Sub ${EnvironmentName}-PrivateSubnetA
+        Value: !Sub ${EnvironmentName}-PrivateSubnetA-AZ1
       - Key: Tier
         Value: App
 
@@ -177,7 +177,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags: 
       - Key: Name
-        Value: !Sub ${EnvironmentName}-PrivateSubnetB
+        Value: !Sub ${EnvironmentName}-PrivateSubnetB-AZ2
       - Key: Tier
         Value: App
 
