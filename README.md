@@ -10,16 +10,41 @@ You need to have the following in order for the provisioning scripts to work:
 * AWS CLI v2 - https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html
 * ECS CLI - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_CLI_installation.html
 
-## Steps to provision resources
+## Steps to provision core resources(VPC, RDS, IAM Roles, ECS, PyPlate Lambda handler, Certificates, ECS Cluster)
 
 1. Create an s3 bucket. This is needed to store the packaged Cloudformation templates
 ```
 BUCKET_NAME=enter_your_bucket_name # e.g. sarge-cfn
 AWS_PROFILE=enter_your_aws_profile_reference # Reference: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
-aws s3api create-bucket --bucket $BUCKET_NAME --region ap-southeast-1 --profile $AWS_PROFILE --create-bucket-configuration LocationConstraint=ap-southeast-1
+aws s3api create-bucket \
+--bucket $BUCKET_NAME \
+--region ap-southeast-1 \
+--profile $AWS_PROFILE \
+--create-bucket-configuration LocationConstraint=ap-southeast-1
 ```
 
 2. Once the s3 bucket is ready, you can package the CFN templates. NOTE: this is a nested stack
+
+```
+BUCKET_NAME=enter_your_bucket_name # e.g. sarge-cfn
+AWS_PROFILE=enter_your_aws_profile_reference # Reference: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
+aws cloudformation package \
+--template-file template.yaml \
+--output-template packaged.yaml \
+--s3-bucket $BUCKET_NAME \
+--profile $AWS_PROFILE
+```
+
+3. Deploy the packaged cfn template `template.yaml`
+
+```
+aws cloudformation deploy \
+--stack-name SargeCommon-stack \
+--template-file packaged.yaml \
+--capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+--profile apper_challenge
+```
+
 
 &nbsp;
 * What you will build should satisfy the challenge statement/requirements.
