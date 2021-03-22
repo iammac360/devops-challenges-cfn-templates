@@ -170,6 +170,10 @@ ecs-cli compose \
   --force-deployment
 ```
 
+## Steps to provision Tier3 Challenge(EKS)
+
+*** TO BE IMPLEMENTED ***
+
 ## Pipeline Link:
 
 NOTE: This is a mono pipeline for all the 3 challenges. The source comes from codecommit repository.
@@ -180,4 +184,4 @@ https://ap-southeast-1.console.aws.amazon.com/codesuite/codepipeline/pipelines/s
 
 * Tier 1: https://sarge-tier1.apperdevops.com
 * Tier 2: https://sarge-tier2.apperdevops.com
-* Tier 3: https://sarge-tier3.apperdevops.com
+* Tier 3: https://sarge-tier3.apperdevops.com(To be implemented)
