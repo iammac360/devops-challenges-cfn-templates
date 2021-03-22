@@ -25,6 +25,19 @@ My VPC environment setup comprises of:
 
 This is to ensure that my VPC is HA. I also provisioned the elastic beanstalk, ECS and EKS in an HA setup and utilizes auto scaling.
 
+
+## Pipeline Link:
+
+NOTE: This is a mono pipeline for all the 3 challenges. The source comes from codecommit repository.
+
+https://ap-southeast-1.console.aws.amazon.com/codesuite/codepipeline/pipelines/sargeapper-cicd/view?region=ap-southeast-1
+
+## Working URLs:
+
+* Tier 1: https://sarge-tier1.apperdevops.com
+* Tier 2: https://sarge-tier2.apperdevops.com
+* Tier 3: https://sarge-tier3.apperdevops.com(To be implemented)
+
 ## Prerequisites:
 
 You need to have the following in order for the provisioning scripts to work:
@@ -173,15 +186,3 @@ ecs-cli compose \
 ## Steps to provision Tier3 Challenge(EKS)
 
 *** TO BE IMPLEMENTED ***
-
-## Pipeline Link:
-
-NOTE: This is a mono pipeline for all the 3 challenges. The source comes from codecommit repository.
-
-https://ap-southeast-1.console.aws.amazon.com/codesuite/codepipeline/pipelines/sargeapper-cicd/view?region=ap-southeast-1
-
-## Working URLs:
-
-* Tier 1: https://sarge-tier1.apperdevops.com
-* Tier 2: https://sarge-tier2.apperdevops.com
-* Tier 3: https://sarge-tier3.apperdevops.com(To be implemented)
