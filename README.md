@@ -10,12 +10,23 @@ You need to have the following in order for the provisioning scripts to work:
 * AWS CLI v2 - https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html
 * ECS CLI - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_CLI_installation.html
 
-## Steps to provision core resources(VPC, RDS, IAM Roles, ECS, PyPlate Lambda handler, Certificates, ECS Cluster)
+## Steps to provision core resources(VPC, RDS, IAM Roles/Policies, ECS, PyPlate Lambda handler, Certificates, ECS Cluster)
 
-1. Create an s3 bucket. This is needed to store the packaged Cloudformation templates
+1. Clone this repository
+
+```
+git clone ssh://git-codecommit.ap-southeast-1.amazonaws.com/v1/repos/sarge-cfn-templates
+
+cd sarge-cfn-templates
+
+```
+
+2. Create an s3 bucket. This is needed to store the packaged Cloudformation templates
+
 ```
 BUCKET_NAME=enter_your_bucket_name # e.g. sarge-cfn
-AWS_PROFILE=enter_your_aws_profile_reference # Reference: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
+ # Reference: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
+AWS_PROFILE=enter_your_aws_profile_reference
 aws s3api create-bucket \
 --bucket $BUCKET_NAME \
 --region ap-southeast-1 \
@@ -23,11 +34,12 @@ aws s3api create-bucket \
 --create-bucket-configuration LocationConstraint=ap-southeast-1
 ```
 
-2. Once the s3 bucket is ready, you can package the CFN templates. NOTE: this is a nested stack
+3. Once the s3 bucket is ready, you can package the CFN templates. NOTE: this is a nested stack
 
 ```
 BUCKET_NAME=enter_your_bucket_name # e.g. sarge-cfn
-AWS_PROFILE=enter_your_aws_profile_reference # Reference: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
+ # Reference: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
+AWS_PROFILE=enter_your_aws_profile_reference
 aws cloudformation package \
 --template-file template.yaml \
 --output-template packaged.yaml \
@@ -35,7 +47,7 @@ aws cloudformation package \
 --profile $AWS_PROFILE
 ```
 
-3. Deploy the packaged cfn template `template.yaml`
+4. Deploy the packaged cfn template `template.yaml`
 
 ```
 aws cloudformation deploy \
@@ -43,6 +55,54 @@ aws cloudformation deploy \
 --template-file packaged.yaml \
 --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM CAPABILITY_NAMED_IAM \
 --profile apper_challenge
+```
+
+## Steps to provision Tier1 Challenge(Elastic Beanstalk)
+
+1. Clone the sarge-express-miniapp repo
+
+```
+git clone ssh://git-codecommit.ap-southeast-1.amazonaws.com/v1/repos/sarge-express-miniapp
+
+cd sarge-express-miniapp
+```
+
+2. Using eb cli tool, initialize a new elastic beanstalk config 
+
+```
+# Reference: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
+AWS_PROFILE=enter_your_aws_profile_reference 
+
+eb init --profile $AWS_PROFILE
+
+# Select a default region: 7 - ap-southeast-1
+# Select [ Create new Application ]
+# Enter Application Name: Any name you want
+# Select a platform.: 7 - Node.js
+# Select a platform branch: 1 - Node.js 14 running on 64bit Amazon Linux 2
+# Do you wish to continue with CodeCommit? (Y/n): Y (But it's up to you if you want to use other repositories)
+# Select  a repository: Up to you
+```
+
+3. After initializing eb config, create a new environment with sample app
+
+```
+eb create --sample --vpc
+```
+
+4. Set the necessary environment variables. You can check the host name at your provisioned RDS instanec
+
+```
+# Replace the values
+PASSWORD=somedbpassword
+HOST=somedbisntance.c4abcdef1234.ap-southeast-1.rds.amazonaws.com
+eb setenv PASSWORD=$PASSWORD USERNAME=sarge DATABASE=sarge HOST=$HOST
+```
+
+5. After you set the necessary env vars, you can now deploy the app
+
+```
+eb deploy
 ```
 
 
