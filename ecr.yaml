@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Template for provisioning ECR repo
+
+Parameters:
+  RepoName:
+    Default: sarge-express-miniapp-new
+    Description: Please enter the Repository name
+    Type: String
+
+Resources:
+  SargeECRRepo: 
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: !Ref RepoName
+      RepositoryPolicyText: 
+        Version: "2008-10-17"
+        Statement: 
+          - 
+            Sid: CodeBuildAccess
+            Effect: Allow
+            Principal:
+              Service:
+                - "codebuild.amazonaws.com"
+                - "codepipeline.amazonaws.com"
+            Action:
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:PutImage"
+              - "ecr:InitiateLayerUpload"
+              - "ecr:UploadLayerPart"
+              - "ecr:CompleteLayerUpload"
+
+Outputs:
+  ECRRepo:
+    Description: Reference to the ECR repository
+    Value: !Ref SargeECRRepo

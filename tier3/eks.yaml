@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Template for provisioning EKS essentails(IAM Policies, Roles etc..)
+
+Resources:
+  SargeSTSAssumeRolePolicy: 
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      ManagedPolicyName: STSAssumeRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Sid: AllowToAssumeRoles
+            Effect: Allow
+            Action:
+              - "sts:AssumeRole"
+            Resource: "*"
+          - 
+            Sid: AllowSSM
+            Effect: Allow
+            Action:
+              - "ssm:GetParameter"
+            Resource: "*"
+          - 
+            Sid: AllowKMS
+            Effect: Allow
+            Action:
+              - 'kms:Decrypt'
+            Resource: 'arn:aws:kms:ap-southeast-1:329511059546:key/ae699f7a-611b-4b95-9510-d70b17bda3fc'
+
+  SargeEKSNodeRoute53Policy: 
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      ManagedPolicyName: EKSNodeRoute53Policy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Sid: Route53ChangeResourceRecordSets
+            Effect: Allow
+            Action:
+              - "route53:ChangeResourceRecordSets"
+            Resource:
+              - "arn:aws:route53:::hostedzone/*"
+          - 
+            Sid: Route53EKSEssentials
+            Effect: Allow
+            Action:
+              - "route53:ListHostedZones"
+              - "route53:ListResourceRecordSets"
+            Resource:
+              - "*"

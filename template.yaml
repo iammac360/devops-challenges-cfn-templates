@@ -90,7 +90,6 @@ Resources:
               - Fn::GetAtt:
                 - SargeVPCStack
                 - Outputs.PublicSubnetBCDIR
-
         # Certificates:
           # Fn::Join:
             # - ','
@@ -98,6 +97,16 @@ Resources:
               # - Fn::GetAtt:
                 # - SargeCertificates
                 # - Outputs.TierOneCert
+                
+  SargeECRStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ecr.yaml
+
+  SargeEKSTierThreeStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: tier3/eks.yaml
 
   # SargeEBTierOneStack:
     # Type: AWS::CloudFormation::Stack

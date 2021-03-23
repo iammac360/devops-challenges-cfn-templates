@@ -1,0 +1,7 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: sargedb
+spec:
+  type: ExternalName
+  externalName: sargedbinstance.c4yvxvqwasr3.ap-southeast-1.rds.amazonaws.com

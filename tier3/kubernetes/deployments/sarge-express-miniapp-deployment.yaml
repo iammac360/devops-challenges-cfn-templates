@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.version: 1.21.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: sarge-express-miniapp
+    app: sarge-express-miniapp
+    app-type: app
+  name: sarge-express-miniapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: sarge-express-miniapp
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        io.kompose.service: sarge-express-miniapp
+        app: sarge-express-miniapp
+        app-type: app
+    spec:
+      nodeSelector:
+        role: workers
+      containers:
+      - 
+        env:
+        - name: DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DATABASE
+        - name: HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: HOST
+        - name: USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: USERNAME
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: PASSWORD
+        image: 329511059546.dkr.ecr.ap-southeast-1.amazonaws.com/sarge-express-miniapp:latest
+        imagePullPolicy: ""
+        name: sarge-express-miniapp
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""

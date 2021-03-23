@@ -1,0 +1,100 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: sarge-eks-tier3-dev
+  region: ap-southeast-1
+
+vpc:
+  subnets:
+    private:
+      ap-southeast-1a: { id: subnet-03b108f8c1e5b050a }
+      ap-southeast-1b: { id: subnet-06ac82270f82cdb6e }
+
+nodeGroups:
+  - name: ng-1-workers
+    minSize: 3
+    maxSize: 6
+    labels: 
+      role: workers
+    tags: 
+      Creator: "Sarge"
+      Environment: Development
+      Name: sarge-eks-tier3-dev
+      k8s.io/cluster-autoscaler/node-template/label/role: worker
+    privateNetworking: true
+    instancesDistribution:
+      maxPrice: 0.007
+      instanceTypes:
+        - t3a.micro
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0
+      spotInstancePools: 2
+    volumeSize: 10
+    ssh:
+      allow: true
+      publicKeyPath: ~/.ssh/sarge_apper.pub
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+        - arn:aws:iam::329511059546:policy/STSAssumeRole
+        - arn:aws:iam::329511059546:policy/EKSNodeRoute53Policy
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        appMesh: true
+        appMeshPreview: true
+        ebs: true
+        fsx: true
+        efs: true
+        albIngress: true
+        xRay: true
+        cloudWatch: true
+  - name: ng-2-workers
+    minSize: 2
+    maxSize: 4
+    labels: 
+      role: workers
+    tags: 
+      Creator: "Sarge"
+      Environment: Development
+      Name: sarge-eks-tier3-dev
+      k8s.io/cluster-autoscaler/node-template/label/role: worker
+    privateNetworking: true
+    instancesDistribution:
+      maxPrice: 0.007
+      instanceTypes:
+        - t3a.micro
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 0
+      spotInstancePools: 2
+    volumeSize: 10
+    ssh:
+      allow: true
+      publicKeyPath: ~/.ssh/sarge_apper.pub
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+        - arn:aws:iam::329511059546:policy/STSAssumeRole
+        - arn:aws:iam::329511059546:policy/EKSNodeRoute53Policy
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        appMesh: true
+        appMeshPreview: true
+        ebs: true
+        fsx: true
+        efs: true
+        albIngress: true
+        xRay: true
+        cloudWatch: true
