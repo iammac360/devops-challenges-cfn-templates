@@ -1,0 +1,45 @@
+apiVersion: v1
+data:
+  mapRoles: |
+    - rolearn: arn:aws:iam::329511059546:role/EksWorkshopCodeBuildKubectlRole
+      username: build
+      groups:
+        - system:masters
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      rolearn: arn:aws:iam::329511059546:role/eksctl-sarge-eks-tier3-dev-nodegr-NodeInstanceRole-1CGYG3U3CW3SC
+      username: system:node:{{EC2PrivateDNSName}}
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      rolearn: arn:aws:iam::329511059546:role/eksctl-sarge-eks-tier3-dev-nodegr-NodeInstanceRole-1U1PE8VX00DUE
+      username: system:node:{{EC2PrivateDNSName}}
+  mapUsers: |
+    []
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2021-03-22T17:04:46Z"
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:data:
+        .: {}
+        f:mapUsers: {}
+    manager: eksctl
+    operation: Update
+    time: "2021-03-22T17:04:46Z"
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:data:
+        f:mapRoles: {}
+    manager: kubectl-edit
+    operation: Update
+    time: "2021-03-24T15:30:07Z"
+  name: aws-auth
+  namespace: kube-system
+  resourceVersion: "532811"
+  selfLink: /api/v1/namespaces/kube-system/configmaps/aws-auth
+  uid: 094d67f9-711f-4c21-b294-635ba5d19631

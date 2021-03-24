@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This template creates CodeBuild resource for deploying Kubernetes manifests
+
+Parameters:
+  Name:
+    Default: sarge-eks-tier3-dev-ci
+    Description: Please enter the Codebuild Project Name
+    Type: String
+
+Resources:
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Ref Name
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        PrivilegedMode: true
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: 
+          Fn::Sub: |
+            version: 0.2
+
+            env:
+              variables:
+                AWS_DEFAULT_REGION : "${AWS::Region}"
+                AWS_CLUSTER_NAME: "sarge-eks-tier3-dev"
+                AWS_ROLE_ARN: ${EksCodeBuildKubectlRole.Arn}
+
+            phases:
+              install:
+                commands:
+                  - echo Installing jq
+                  - yum install -y jq
+                  - echo Installing app dependencies...
+                  - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
+                  - chmod +x ./kubectl
+                  - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+                  - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+                  - source ~/.bashrc
+              pre_build:
+                commands:
+                  - echo Entered the pre_build phase...
+                  - echo Logging in to Amazon EKS...
+                  - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $AWS_CLUSTER_NAME --role-arn $AWS_ROLE_ARN
+                  - kubectl get svc
+              build:
+                commands:
+                  - IMAGE=$(cat imageDetail.json | jq -c '.[] | .imageUri')
+                  - echo $IMAGE
+                  - kubectl set image deployment/sarge-express-miniapp sarge-express-miniapp=$IMAGE -n apper
+
+      TimeoutInMinutes: 10
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codebuild.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: !Sub ${Name}-CodeBuildEssentials
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 'logs:CreateLogGroup'
+                - 'logs:CreateLogStream'
+                - 'logs:PutLogEvents'
+                Effect: Allow
+                Resource: 
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${Name}'
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${Name}:*'
+              - Action:
+                - 's3:PutObject'
+                - 's3:GetObject'
+                - 's3:GetObjectVersion'
+                - 's3:GetBucketAcl'
+                - 's3:GetBucketLocation'
+                Effect: Allow
+                Resource: 
+                - !Sub 'arn:aws:s3:::codepipeline-${AWS::Region}-*'
+              - Action:
+                - 'codebuild:CreateReportGroup'
+                - 'codebuild:CreateReport'
+                - 'codebuild:UpdateReport'
+                - 'codebuild:BatchPutTestCases'
+                - 'codebuild:BatchPutCodeCoverages'
+                Effect: Allow
+                Resource: 
+                - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/${Name}-*'
+        - PolicyName: CodeBuildAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 'logs:*'
+                - 'ec2:CreateNetworkInterface'
+                - 'ec2:DescribeNetworkInterfaces'
+                - 'ec2:DeleteNetworkInterface'
+                - 'ec2:DescribeSubnets'
+                - 'ec2:DescribeSecurityGroups'
+                - 'ec2:DescribeDhcpOptions'
+                - 'ec2:DescribeVpcs'
+                - 'ec2:CreateNetworkInterfacePermission'
+                Effect: Allow
+                Resource: '*'
+        - PolicyName: CodeBuildEKSAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 'eks:*'
+                Effect: Allow
+                Resource: '*'
+        - PolicyName: STSASSUME
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 'sts:AssumeRole'
+                Effect: Allow
+                Resource: !GetAtt [EksCodeBuildKubectlRole, Arn]
+
+  EksCodeBuildKubectlRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EksCodeBuildKubectlRole
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+        Version: '2012-10-17'
+
+  EksCodeBuildDescribe:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: EksCodeBuildDescribe
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: 'eks:Describe*'
+            Resource: '*'
+      Roles:
+        - !Ref EksCodeBuildKubectlRole
