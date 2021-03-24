@@ -49,10 +49,9 @@ Resources:
                   - echo Entered the pre_build phase...
                   - echo Logging in to Amazon EKS...
                   - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $AWS_CLUSTER_NAME --role-arn $AWS_ROLE_ARN
-                  - kubectl get svc
               build:
                 commands:
-                  - IMAGE=$(cat imageDetail.json | jq -c '.[] | .imageUri')
+                  - IMAGE=$(cat imageDetail.json | jq -c '.[] | .imageUri' | sed -e 's/^"//' -e 's/"$//')
                   - echo $IMAGE
                   - kubectl set image deployment/sarge-express-miniapp sarge-express-miniapp=$IMAGE -n apper
 
