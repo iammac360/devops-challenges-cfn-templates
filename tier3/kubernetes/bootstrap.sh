@@ -1,11 +1,12 @@
 #!/bin/bash
 
 NAMESPACE="${NAMESPACE:-apper}"
-CLUSTER_NAME=sarge-eks-tier3-dev
+CLUSTER_NAME=${CLUSTER_NAME:-sarge-eks-tier3-dev}
 AWS_ACCOUNT_ID=329511059546
-AWS_PROFILE=apper_challenge 
+AWS_PROFILE=${AWS_PROFILE:-apper_challenge} 
 REGION=ap-southeast-1
-VPC_ID=vpc-03447814bec2259fb
+VPC_ID=${VPC_ID:-vpc-03447814bec2259fb}
+GENERATED_AUTOSCALER_IAM_ROLE=${GENERATED_AUTOSCALER_IAM_ROLE:-eksctl-sarge-eks-tier3-dev-addon-iamservicea-Role1-1M18UNII4L1XU}
 
 if ! kubectl get ns | grep apper
 then
@@ -58,3 +59,27 @@ kubectl apply -f deployments/sarge-express-miniapp-deployment.yaml
 # Deploy api gateway ingress
 echo "Deploying api gateway ingress"
 kubectl apply -f ingress/sarge-tier3-gateway-ing.yaml
+
+
+# Enable Cluster Autoscaler
+echo "Enable Cluster Autoscaler"
+eksctl create iamserviceaccount \
+  --cluster=$CLUSTER_NAME \
+  --namespace=kube-system \
+  --name=cluster-autoscaler \
+  --attach-policy-arn=arn:aws:iam::$AWS_ACCOUNT_ID:policy/SargeEKSClusterAutoScalerPolicy \
+  --override-existing-serviceaccounts \
+  --profile $AWS_PROFILE \
+  --approve
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+kubectl annotate serviceaccount cluster-autoscaler \
+  -n kube-system \
+  eks.amazonaws.com/role-arn=arn:aws:iam::$AWS_ACCOUNT_ID:role/$GENERATED_AUTOSCALER_IAM_ROLE \
+  --overwrite
+kubectl patch deployment cluster-autoscaler \
+  -n kube-system \
+  -p '{"spec":{"template":{"metadata":{"annotations":{"cluster-autoscaler.kubernetes.io/safe-to-evict": "false"}}}}}'
+
+kubectl set image deployment cluster-autoscaler \
+  -n kube-system \
+  cluster-autoscaler=k8s.gcr.io/autoscaling/cluster-autoscaler:v1.19.1
